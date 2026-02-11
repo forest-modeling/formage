@@ -15,4 +15,4 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the Container image
-      run: docker build . --file forest-modeling.containerfile --tag formage:$(date +%s)
+      run: docker build . --file formage.containerfile --tag formage:$(date +%s)
