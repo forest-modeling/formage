@@ -12,7 +12,7 @@ ARG PYSITEINDEX_VERSION=main
 ARG FVS_VARIANTS=pn,wc,ca,so
 # ARG PYFVS_VERSION=v0.3.2
 
-ARG ROOT=/fomo
+ARG ROOT=/formage
 
 RUN apt update && apt install -y \
     git \
@@ -76,7 +76,7 @@ RUN apt update && apt install -y --no-install-recommends libgfortran5 \
   && rm -rf /var/lib/apt/lists/* \
   && apt clean
 
-ARG ROOT=/fomo
+ARG ROOT=/formage
 COPY --from=builder "$ROOT/venv" "$ROOT/venv"
 
 # Set environment variables for the virtual environment location
