@@ -1,8 +1,8 @@
 # ---- Stage 1: Build ----
-ARG PYTHON_VERSION=3.12
 ARG OS_TAG=slim-bookworm
+ARG PYTHON_VER
 
-FROM python:$PYTHON_VERSION-$OS_TAG AS builder
+FROM python:${PYTHON_VER}-$OS_TAG AS builder
 
 ARG PYFVS_VERSION=main
 ARG PYNVEL_VERSION=main
@@ -71,7 +71,7 @@ RUN python -m pip uninstall -y \
   ninja meson meson-python setuptools_scm cython
 
 # ---- Stage 2: Production ----
-FROM python:$PYTHON_VERSION-$OS_TAG
+FROM python:${PYTHON_VER}-$OS_TAG
 
 RUN apt update && apt install -y --no-install-recommends libgfortran5 \
   && rm -rf /var/lib/apt/lists/* \

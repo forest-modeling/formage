@@ -2,7 +2,8 @@ name: Formage Container Image CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main","dev" ]
+    tags: 'v.*.*'
 
 jobs:
 
@@ -11,6 +12,10 @@ jobs:
     permissions:
       contents: read
       packages: write # Required for pushing to GHCR
+    
+    strategy:
+      matrix:
+        python_version: ["3.12", "3.13"]
 
     steps:
       - name: Checkout repository
@@ -23,11 +28,11 @@ jobs:
           username: ${{ github.actor }} # Uses the GitHub username
           password: ${{ secrets.GITHUB_TOKEN }} # Uses the auto-generated GITHUB_TOKEN secret
 
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ github.repository }}-py${{ matrix.python_version }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -38,3 +43,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            PYTHON_VER=${{ matrix.python_version }}
