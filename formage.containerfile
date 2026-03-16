@@ -4,14 +4,13 @@ ARG PYTHON_VER
 
 FROM python:${PYTHON_VER}-$OS_TAG AS builder
 
-ARG PYFVS_VERSION=main
+ARG PYFVS_VER
 ARG PYNVEL_VERSION=main
 ARG PYSITEINDEX_VERSION=main
 # FVS variant libraries to build, must be lowercase
 ARG FVS_VARIANTS=pn,wc,ca,so,op,oc,ec,nc,bm,ie,ci,ak,ws
 #,em,tt,cr,ut,ls,cs,sn,ne
 # ARG FVS_VARIANTS=pn,wc,ca,so
-# ARG PYFVS_VERSION=v0.3.2
 
 ARG ROOT=/formage
 
@@ -43,7 +42,11 @@ RUN git clone https://github.com/forest-modeling/PyFVS.git --recurse-submodules
 
 WORKDIR "$ROOT/PyFVS"
 
-RUN git checkout "${PYFVS_VERSION}"
+# RUN if [[ "$PYFVS_VER" =~ ^[0-9] ]]; then git checkout "v$PYFVS_VER"; else git checkout "$PYFVS_VER"; fi
+RUN if echo "$PYFVS_VER" | grep -q '^[0-9]'; \
+  then git checkout --recurse-submodules "v$PYFVS_VER"; \
+  else git checkout --recurse-submodules "$PYFVS_VER"; \
+  fi
 RUN python -m pip install . \
   --verbose --no-build-isolation \
   --config-settings=setup-args="-Dfvsvariants=$FVS_VARIANTS"

@@ -3,7 +3,7 @@ name: Formage Container Image CI
 on:
   push:
     branches: [ "main","dev" ]
-    tags: 'v.*.*'
+    tags: 'v*.*'
 
 jobs:
 
@@ -16,6 +16,7 @@ jobs:
     strategy:
       matrix:
         python_version: ["3.12", "3.13"]
+        pyfvs_version: ["main","dev","0.3.4"]
 
     steps:
       - name: Checkout repository
@@ -32,7 +33,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}-py${{ matrix.python_version }}
+          images: ghcr.io/${{ github.repository }}-py${{ matrix.python_version }}-pyfvs${{ matrix.pyfvs_version }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -45,3 +46,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             PYTHON_VER=${{ matrix.python_version }}
+            PYFVS_VER=${{ matrix.pyfvs_version }}
