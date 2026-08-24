@@ -1,6 +1,6 @@
 # ---- Stage 1: Build ----
 ARG OS_TAG=slim-bookworm
-ARG PYTHON_VER
+ARG PYTHON_VER=3.12
 
 FROM python:${PYTHON_VER}-$OS_TAG AS builder
 
@@ -38,27 +38,36 @@ RUN python -m venv "$ROOT/venv" \
 
 # Clone, build, install PyFVS
 WORKDIR "$ROOT"
-RUN git clone https://github.com/forest-modeling/PyFVS.git --recurse-submodules
 
-WORKDIR "$ROOT/PyFVS"
-
-# RUN if [[ "$PYFVS_VER" =~ ^[0-9] ]]; then git checkout "v$PYFVS_VER"; else git checkout "$PYFVS_VER"; fi
-RUN if echo "$PYFVS_VER" | grep -q '^[0-9]'; \
-  then git checkout --recurse-submodules "v$PYFVS_VER"; \
-  else git checkout --recurse-submodules "$PYFVS_VER"; \
-  fi
-RUN python -m pip install . \
-  --verbose --no-build-isolation \
-  --config-settings=setup-args="-Dfvsvariants=$FVS_VARIANTS"
+# If this is a tagged version then install from PyPI
+# Otherwise build locally
+RUN if echo "$PYFVS_VER" | grep -q '^[0-9]'; then \
+        python -m pip install "pyfvs==$PYFVS_VER" --quiet; \
+    else \
+        git clone https://github.com/forest-modeling/PyFVS.git --recurse-submodules && \
+        cd PyFVS && \
+        git checkout "$PYFVS_VER" && \
+        git submodule update --init --recursive && \
+        python -m pip install . \
+          --verbose \
+          --no-build-isolation \
+          --config-settings=setup-args="-Dfvsvariants=$FVS_VARIANTS"; \
+    fi
 
 # Clone, build, install PyNVEL
 WORKDIR "$ROOT"
-RUN git clone https://github.com/forest-modeling/pynvel.git --recurse-submodules
 
-WORKDIR "$ROOT/pynvel"
-
-RUN git checkout "${PYNVEL_VERSION}"
-RUN python -m pip install . --verbose --no-build-isolation
+# Install PyNVEL from PyPI if targeting a tagged PyFVS verions
+RUN if echo "$PYFVS_VER" | grep -q '^[0-9]'; then \
+        python -m pip install pynvel --quiet; \
+    else \
+        git clone https://github.com/forest-modeling/pynvel.git --recurse-submodules && \
+        cd pynvel && \
+        git checkout "${PYNVEL_VERSION}" && \
+        python -m pip install . \
+          --verbose \
+          --no-build-isolation; \
+    fi
 
 # Clone and install PySiteIndex
 WORKDIR "$ROOT"
